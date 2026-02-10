@@ -29,7 +29,7 @@ export default function NurseryOnboarding() {
     useEffect(() => {
         const email = localStorage.getItem('vendorEmail');
         if (!email) {
-            router.push('/vendor/register');
+            router.push('/vendor/login');
         }
     }, []);
 

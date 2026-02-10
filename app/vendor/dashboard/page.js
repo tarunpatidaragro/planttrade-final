@@ -55,37 +55,42 @@ export default function VendorDashboard() {
             setMyNurseryId(nurseryId);
             fetchData(nurseryId);
         } else {
-            router.push('/vendor/register');
+            // Logged in but no nursery? Go to Onboarding
+            router.push('/vendor/onboarding');
         }
-    }, []);
+    }, [router]);
 
     const fetchData = async (id) => {
         // Fetch Nursery Details
-        const nRes = await fetch('/api/nurseries');
-        const nData = await nRes.json();
-        const me = nData.find(n => n.id === id);
-        if (me) {
-            setMyNursery(me);
-            setProfileForm({
-                ...me,
-                phone: me.contact?.phone || '',
-                address: me.contact?.address || '',
-                city: me.contact?.city || '',
-                state: me.contact?.state || '',
-                pincode: me.contact?.pincode || '',
-                lat: me.lat || '',
-                lng: me.lng || '',
-                gallery: me.gallery || [],
-                reviews: me.reviews || [],
-                specialties: me.specialties || []
-            });
-        }
+        try {
+            const nRes = await fetch('/api/nurseries');
+            const nData = await nRes.json();
+            const me = nData.find(n => n.id === id);
+            if (me) {
+                setMyNursery(me);
+                setProfileForm({
+                    ...me,
+                    phone: me.contact?.phone || '',
+                    address: me.contact?.address || '',
+                    city: me.contact?.city || '',
+                    state: me.contact?.state || '',
+                    pincode: me.contact?.pincode || '',
+                    lat: me.lat || '',
+                    lng: me.lng || '',
+                    gallery: me.gallery || [],
+                    reviews: me.reviews || [],
+                    specialties: me.specialties || []
+                });
+            }
 
-        // Fetch Products
-        const pRes = await fetch('/api/products');
-        const pData = await pRes.json();
-        const myProducts = pData.filter(p => p.nurseryId === id);
-        setProducts(myProducts);
+            // Fetch Products
+            const pRes = await fetch('/api/products');
+            const pData = await pRes.json();
+            const myProducts = pData.filter(p => p.nurseryId === id);
+            setProducts(myProducts);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
     };
 
     // Helper: Convert File to Base64
@@ -267,7 +272,11 @@ export default function VendorDashboard() {
                     )}
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                    <button className="btn btn-outline" onClick={() => { localStorage.removeItem('vendorNurseryId'); router.push('/vendor/register'); }}>Logout</button>
+                    <button className="btn btn-outline" onClick={() => {
+                        document.cookie = "plant_vendor_v1=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                        localStorage.removeItem('vendorNurseryId');
+                        router.push('/vendor/login');
+                    }}>Logout</button>
                     <Link href="/" className="btn btn-secondary">Back to Site</Link>
                 </div>
             </div>

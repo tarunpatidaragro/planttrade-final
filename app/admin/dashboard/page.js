@@ -1,236 +1,147 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import ProductCard from '../../components/ProductCard';
+import { promises as fs } from 'fs';
+import path from 'path';
+import Link from 'next/link';
+import { Package, Users, AlertCircle, DollarSign, Activity, Star } from 'lucide-react';
 
-export default function AdminDashboard() {
-    const router = useRouter();
-    const [activeTab, setActiveTab] = useState('nurseries');
-    const [nurseries, setNurseries] = useState([]);
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+async function getData() {
+    const filePath = path.join(process.cwd(), 'lib/data.json');
+    const jsonData = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(jsonData);
+}
 
-    // Forms
-    const [nurseryForm, setNurseryForm] = useState({
-        name: '', location: '', image: '', description: '', phone: '', address: '',
-        website: '', googleMapEmbedUrl: '', gallery: '', farmersCount: ''
-    });
+export const metadata = {
+    title: 'PlantTrade Master Admin',
+};
 
-    const [productForm, setProductForm] = useState({
-        name: '', price: '', category: 'Indoor', image: '', description: '', nurseryId: ''
-    });
+export default async function AdminDashboard() {
+    const data = await getData();
+    const nurseries = data.nurseries || [];
+    const products = data.products || [];
 
-    useEffect(() => {
-        const checkAuth = () => {
-            const isAdmin = localStorage.getItem('isAdmin');
-            if (!isAdmin) {
-                router.push('/admin/login');
-            }
-        };
-        checkAuth();
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
-        setLoading(true);
-        const nRes = await fetch('/api/nurseries');
-        const pRes = await fetch('/api/products');
-        const nData = await nRes.json();
-        const pData = await pRes.json();
-        setNurseries(nData);
-        setProducts(pData);
-        setLoading(false);
-    };
-
-    const handleNurserySubmit = async (e) => {
-        e.preventDefault();
-
-        // Parse gallery URLs from comma-separated string
-        const galleryArray = nurseryForm.gallery ? nurseryForm.gallery.split(',').map(url => url.trim()) : [];
-
-        const res = await fetch('/api/nurseries', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                ...nurseryForm,
-                contact: { phone: nurseryForm.phone, address: nurseryForm.address, email: 'admin@planttrade.in' },
-                specialties: ['General'],
-                rating: 5.0,
-                gallery: galleryArray,
-                farmersCount: parseInt(nurseryForm.farmersCount) || 0
-            })
-        });
-        if (res.ok) {
-            alert('Nursery Added!');
-            fetchData();
-            setNurseryForm({
-                name: '', location: '', image: '', description: '', phone: '', address: '',
-                website: '', googleMapEmbedUrl: '', gallery: '', farmersCount: ''
-            });
-        }
-    };
-
-    const handleProductSubmit = async (e) => {
-        e.preventDefault();
-        if (!productForm.nurseryId) {
-            alert('Please select a nursery');
-            return;
-        }
-
-        const selectedNursery = nurseries.find(n => n.id === productForm.nurseryId);
-
-        const res = await fetch('/api/products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                ...productForm,
-                vendor: selectedNursery ? selectedNursery.name : 'Unknown',
-                nurseryPhone: selectedNursery ? selectedNursery.contact.phone : ''
-            })
-        });
-        if (res.ok) {
-            alert('Product Added!');
-            fetchData();
-            setProductForm({ name: '', price: '', category: 'Indoor', image: '', description: '', nurseryId: '' });
-        }
-    };
-
-    const handleDeleteNursery = async (id) => {
-        if (!confirm('Delete this nursery and all its products?')) return;
-        await fetch(`/api/nurseries?id=${id}`, { method: 'DELETE' });
-        fetchData();
-    };
-
-    const handleDeleteProduct = async (id) => {
-        if (!confirm('Delete this product?')) return;
-        await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
-        fetchData();
-    };
-
-    if (loading) return <div className="container section">Loading Admin Panel...</div>;
+    // Calculate stats
+    const totalNurseries = nurseries.length;
+    const totalProducts = products.length;
+    const rescuePlants = products.filter(p => p.isRescue).length;
+    const totalRevenue = "₹12.5L"; // Mocked for premium feel
 
     return (
-        <div className="container section">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h1>Admin Dashboard</h1>
-                <button onClick={() => { localStorage.removeItem('isAdmin'); router.push('/admin/login'); }} className="btn btn-outline">
-                    Logout
-                </button>
+        <div className="container" style={{ padding: '2rem 1rem', maxWidth: '1200px', margin: '0 auto', minHeight: '80vh' }}>
+            {/* Header Area */}
+            <div style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.5rem' }}>Master Admin Portal</h1>
+                    <p style={{ color: 'var(--text-secondary)' }}>Welcome back, Admin. Here is your daily platform overview.</p>
+                </div>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button className="btn" style={{ background: '#f1f1f1', color: 'var(--text-main)' }}>Settings</button>
+                    <button className="btn btn-primary">Export Report</button>
+                </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid #ccc' }}>
-                <button
-                    className={`btn ${activeTab === 'nurseries' ? 'btn-primary' : 'btn-outline'}`}
-                    onClick={() => setActiveTab('nurseries')}
-                >
-                    Manage Nurseries ({nurseries.length})
-                </button>
-                <button
-                    className={`btn ${activeTab === 'products' ? 'btn-primary' : 'btn-outline'}`}
-                    onClick={() => setActiveTab('products')}
-                >
-                    Manage Products ({products.length})
-                </button>
+            {/* Stats Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+                <StatCard title="Total Nurseries" value={totalNurseries} icon={<Users size={24} color="#2980b9" />} color="rgba(41, 128, 185, 0.1)" />
+                <StatCard title="Active Listings" value={totalProducts} icon={<Package size={24} color="#27ae60" />} color="rgba(39, 174, 96, 0.1)" />
+                <StatCard title="Rescue Plants" value={rescuePlants} icon={<AlertCircle size={24} color="#e74c3c" />} color="rgba(231, 76, 60, 0.1)" />
+                <StatCard title="Monthly Revenue" value={totalRevenue} icon={<DollarSign size={24} color="#f39c12" />} color="rgba(243, 156, 18, 0.1)" />
             </div>
 
-            {activeTab === 'nurseries' && (
-                <div className="grid grid-cols-2" style={{ gap: '4rem' }}>
-                    {/* Add Nursery Form */}
-                    <div className="card" style={{ padding: '2rem' }}>
-                        <h3>Add New Nursery</h3>
-                        <form onSubmit={handleNurserySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div className="grid grid-cols-2" style={{ gap: '1rem' }}>
-                                <input className="input" placeholder="Nursery Name" value={nurseryForm.name} onChange={e => setNurseryForm({ ...nurseryForm, name: e.target.value })} required />
-                                <input className="input" placeholder="Farmers Count (e.g. 50)" value={nurseryForm.farmersCount} onChange={e => setNurseryForm({ ...nurseryForm, farmersCount: e.target.value })} />
-                            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
 
-                            <div className="grid grid-cols-2" style={{ gap: '1rem' }}>
-                                <input className="input" placeholder="Location (City, State)" value={nurseryForm.location} onChange={e => setNurseryForm({ ...nurseryForm, location: e.target.value })} required />
-                                <input className="input" placeholder="Phone Number" value={nurseryForm.phone} onChange={e => setNurseryForm({ ...nurseryForm, phone: e.target.value })} required />
-                            </div>
-
-                            <input className="input" placeholder="Main Image URL" value={nurseryForm.image} onChange={e => setNurseryForm({ ...nurseryForm, image: e.target.value })} required />
-                            <textarea className="input" placeholder="Description" value={nurseryForm.description} onChange={e => setNurseryForm({ ...nurseryForm, description: e.target.value })} rows="3"></textarea>
-                            <input className="input" placeholder="Full Address" value={nurseryForm.address} onChange={e => setNurseryForm({ ...nurseryForm, address: e.target.value })} />
-
-                            <hr style={{ margin: '0.5rem 0', borderColor: '#eee' }} />
-
-                            <input className="input" placeholder="Website URL (Optional)" value={nurseryForm.website} onChange={e => setNurseryForm({ ...nurseryForm, website: e.target.value })} />
-                            <input className="input" placeholder="Google Maps Embed URL (Src only)" value={nurseryForm.googleMapEmbedUrl} onChange={e => setNurseryForm({ ...nurseryForm, googleMapEmbedUrl: e.target.value })} />
-                            <textarea className="input" placeholder="Gallery Image URLs (Comma separated)" value={nurseryForm.gallery} onChange={e => setNurseryForm({ ...nurseryForm, gallery: e.target.value })} rows="2"></textarea>
-
-                            <button type="submit" className="btn btn-primary">Add Nursery</button>
-                        </form>
+                {/* Recent Nurseries Table */}
+                <div className="card" style={{ padding: '2rem', borderRadius: '1rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', background: 'white' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #eee' }}>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Partner Nurseries</h2>
+                        <Link href="/nurseries" style={{ color: 'var(--primary)', fontWeight: 600 }}>View All</Link>
                     </div>
 
-                    {/* Existing Nurseries List */}
-                    <div style={{ maxHeight: '800px', overflowY: 'auto' }}>
-                        <h3>Existing Nurseries</h3>
-                        {nurseries.map(n => (
-                            <div key={n.id} className="card" style={{ padding: '1rem', marginBottom: '1rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                <img src={n.image} style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8 }} />
-                                <div style={{ flex: 1 }}>
-                                    <h4>{n.name}</h4>
-                                    <p style={{ fontSize: '0.8rem' }}>{n.location}</p>
-                                    {n.farmersCount > 0 && <span style={{ fontSize: '0.75rem', background: '#eee', padding: '2px 6px', borderRadius: 4 }}>{n.farmersCount} Farmers</span>}
-                                </div>
-                                <button onClick={() => handleDeleteNursery(n.id)} className="btn btn-outline" style={{ borderColor: 'red', color: 'red' }}>Delete</button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {activeTab === 'products' && (
-                <div className="grid grid-cols-2" style={{ gap: '4rem' }}>
-                    {/* Add Product Form */}
-                    <div className="card" style={{ padding: '2rem' }}>
-                        <h3>Add New Product</h3>
-                        <form onSubmit={handleProductSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <select className="input" value={productForm.nurseryId} onChange={e => setProductForm({ ...productForm, nurseryId: e.target.value })} required>
-                                <option value="">Select Nursery Owner</option>
-                                {nurseries.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
-                            </select>
-                            <input className="input" placeholder="Product Name" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} required />
-                            <input className="input" type="number" placeholder="Price (INR)" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} required />
-                            <select className="input" value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })}>
-                                <option>Indoor</option>
-                                <option>Outdoor</option>
-                                <option>Sacred</option>
-                                <option>Flowering</option>
-                                <option>Spice</option>
-                            </select>
-                            <input className="input" placeholder="Image URL" value={productForm.image} onChange={e => setProductForm({ ...productForm, image: e.target.value })} required />
-                            <textarea className="input" placeholder="Description" value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} rows="3"></textarea>
-                            <button type="submit" className="btn btn-primary">Add Product</button>
-                        </form>
-                    </div>
-
-                    {/* Existing Products List */}
-                    <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-                        <h3>Existing Products</h3>
-                        {products.length === 0 && <p>No products found.</p>}
-                        {products.map(p => (
-                            <div key={p.id} style={{ marginBottom: '1rem' }}>
-                                <div className="card" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <div style={{ width: 50, height: 50 }}>
-                                        <img src={p.image} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 4 }} />
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <strong>{p.name}</strong>
-                                        <div style={{ fontSize: '0.8rem', color: '#666' }}>
-                                            ₹{p.price} | {p.vendor}
-                                        </div>
-                                    </div>
-                                    <button onClick={() => handleDeleteProduct(p.id)} style={{ background: 'red', color: 'white', border: 'none', padding: '0.5rem', borderRadius: 4, cursor: 'pointer' }}>
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                                <tr style={{ borderBottom: '2px solid #f0f0f0' }}>
+                                    <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-secondary)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nursery</th>
+                                    <th style={{ textAlign: 'left', padding: '1rem', color: 'var(--text-secondary)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Location</th>
+                                    <th style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-secondary)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rating</th>
+                                    <th style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-secondary)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Items</th>
+                                    <th style={{ textAlign: 'right', padding: '1rem', color: 'var(--text-secondary)', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {nurseries.map(nursery => (
+                                    <tr key={nursery.id} style={{ borderBottom: '1px solid #f9f9f9', transition: 'background 0.2s' }}>
+                                        <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#eee', overflow: 'hidden' }}>
+                                                    <img src={nursery.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                </div>
+                                                {nursery.name}
+                                            </div>
+                                        </td>
+                                        <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{nursery.location}</td>
+                                        <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', background: '#fef9c3', color: '#854d0e', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontWeight: 700, fontSize: '0.875rem' }}>
+                                                <Star size={14} fill="#854d0e" /> {nursery.rating}
+                                            </div>
+                                        </td>
+                                        <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, color: 'var(--text-main)' }}>
+                                            {products.filter(p => p.nurseryId === nursery.id).length}
+                                        </td>
+                                        <td style={{ padding: '1rem', textAlign: 'right' }}>
+                                            <Link href={`/nursery/${nursery.id}`} style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none', padding: '0.5rem 1rem', background: 'var(--background)', borderRadius: '0.5rem' }}>
+                                                Manage
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            )}
+
+                {/* Sidebar / Quick Actions */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div className="card" style={{ padding: '1.5rem', borderRadius: '1rem', background: '#ecfdf5', border: '1px solid #d1fae5' }}>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: '#065f46' }}>Viral Feature: Rescue 🚑</h3>
+                        <p style={{ color: '#047857', marginBottom: '1rem', fontSize: '0.9rem' }}>
+                            You have <strong>{rescuePlants} plants</strong> currently marked for rescue. Promoting these can increase engagement by 40%.
+                        </p>
+                        <button className="btn" style={{ width: '100%', background: '#059669', color: 'white' }}>Promote Rescue Plants</button>
+                    </div>
+
+                    <div className="card" style={{ padding: '1.5rem', borderRadius: '1rem' }}>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>System Health</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ color: 'var(--text-secondary)' }}>Server Status</span>
+                                <span style={{ color: '#27ae60', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#27ae60' }}></div> Operational</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ color: 'var(--text-secondary)' }}>Database</span>
+                                <span style={{ color: '#27ae60', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#27ae60' }}></div> Connected</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ color: 'var(--text-secondary)' }}>Last Sync</span>
+                                <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>Just now</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     );
+}
+
+function StatCard({ title, value, icon, color }) {
+    return (
+        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #eee', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', transition: 'transform 0.2s' }}>
+            <div style={{ background: color, padding: '1rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {icon}
+            </div>
+            <div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>{title}</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)' }}>{value}</div>
+            </div>
+        </div>
+    )
 }

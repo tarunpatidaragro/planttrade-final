@@ -4,7 +4,7 @@ export default function Footer() {
     return (
         <footer style={{ background: 'var(--primary-dark)', color: 'rgba(255,255,255,0.8)', padding: '4rem 0', marginTop: 'auto' }}>
             <div className="container">
-                <div className="grid grid-cols-4" style={{ gap: '2rem' }}>
+                <div className="grid grid-cols-4 footer-grid" style={{ gap: '2rem' }}>
                     <div>
                         <h3 style={{ color: 'white', marginBottom: '1rem' }}>PlantTrade</h3>
                         <p style={{ marginBottom: '1rem' }}>India's first dedicated marketplace connecting plant lovers directly with nurseries.</p>
@@ -36,8 +36,7 @@ export default function Footer() {
                         <h4 style={{ color: 'white' }}>Support</h4>
                         <ul style={{ listStyle: 'none' }}>
                             <li><a href="/contact">Contact Us</a></li>
-                            <li><a href="/shipping">Shipping Policy</a></li>
-                            <li><a href="/returns">Returns</a></li>
+                            <li><a href="/about">About Us</a></li>
                         </ul>
                     </div>
                 </div>

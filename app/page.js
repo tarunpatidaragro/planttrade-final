@@ -15,6 +15,7 @@ export default async function Home() {
   const nurseries = data.nurseries;
   const products = data.products.slice(0, 8);
 
+  const categories = data.categories || [];
   const posts = blogPosts.slice(0, 3);
-  return <HomeFeed nurseries={nurseries} products={products} posts={posts} />;
+  return <HomeFeed nurseries={nurseries} products={products} posts={posts} categories={categories} />;
 }

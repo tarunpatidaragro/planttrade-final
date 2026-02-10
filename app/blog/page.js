@@ -1,8 +1,22 @@
 import Link from 'next/link';
 import { Calendar, User } from 'lucide-react';
-import { blogPosts } from '../../lib/blogData';
+import { promises as fs } from 'fs';
+import path from 'path';
 
-export default function BlogList() {
+async function getData() {
+    const filePath = path.join(process.cwd(), 'lib/data.json');
+    try {
+        const jsonData = await fs.readFile(filePath, 'utf8');
+        return JSON.parse(jsonData);
+    } catch {
+        return { posts: [] };
+    }
+}
+
+export default async function BlogList() {
+    const data = await getData();
+    const posts = data.posts || [];
+
     return (
         <div className="container section">
             <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
@@ -12,7 +26,7 @@ export default function BlogList() {
             </div>
 
             <div className="grid grid-cols-3" style={{ gap: '2rem' }}>
-                {blogPosts.map(post => (
+                {posts.map(post => (
                     <article key={post.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
                         <div style={{ height: '240px', overflow: 'hidden' }}>
                             <img src={post.image} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} />

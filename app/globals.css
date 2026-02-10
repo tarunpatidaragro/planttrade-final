@@ -255,3 +255,275 @@ p {
   border-color: var(--primary);
   background-color: var(--primary-light);
 }
+
+/* Responsive Utilities */
+.hero-title {
+  font-size: 4rem;
+  color: white;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero-section {
+  padding: 8rem 0;
+  border-radius: 0 0 2rem 2rem;
+  margin-bottom: 2rem;
+}
+
+.search-container {
+  max-width: 600px;
+  width: 90%;
+  margin: 0 auto;
+}
+
+.nursery-layout {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 3rem;
+}
+
+.product-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  margin-bottom: 4rem;
+}
+
+/* =========================================
+   MOBILE RESPONSIVENESS OVERRIDES
+   ========================================= */
+
+/* Prevent horizontal scroll globally */
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
+/* Base Mobile Menu Button (Hidden on Desktop) */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-main);
+}
+
+@media (max-width: 768px) {
+
+  /* Container Reset */
+  .container {
+    width: 100% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    overflow-x: hidden;
+  }
+
+  /* Typography Scaling */
+  h1,
+  .hero-title {
+    font-size: 2rem !important;
+    line-height: 1.2 !important;
+  }
+
+  h2 {
+    font-size: 1.5rem !important;
+  }
+
+  /* General Grid Reset - Default to 1 col for basic content */
+  /* REMOVED .grid to allow custom grids to work */
+  .grid-cols-2,
+  .footer-grid,
+  .nursery-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+  }
+
+  /* EXCEPTIONS: Grids that should have multiple columns */
+
+  /* Trending Plants & Products & Cities: 2 Columns */
+  .product-layout,
+  .grid-cols-4,
+  .city-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Section Spacing */
+  .section,
+  .hero-section {
+    padding: 2rem 0 !important;
+  }
+
+  .hero-section {
+    border-radius: 0 0 1.5rem 1.5rem;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Card Fixes */
+  .card {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Compact Product Card for Mobile */
+  .product-layout .card {
+    /* Remove default padding from container if possible, or we might need to target the inner div */
+    /* Since ProductCard.js has inline padding '1.5rem', we can't easily override it without !important on specific children or a global override */
+    /* But wait, ProductCard structure: 
+         <div className="card">
+           <div>img</div>
+           <div style={{padding: '1.5rem'}}>...</div>
+         </div>
+      */
+    /* We need to target that second div. */
+    display: flex;
+    flex-direction: column;
+  }
+
+  .product-layout .card>div:nth-child(2) {
+    padding: 0.5rem !important;
+    /* Override inline style */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .product-layout .card h3 {
+    font-size: 0.85rem !important;
+    margin-bottom: 0.25rem !important;
+    line-height: 1.2;
+    height: 2.4em;
+    /* Limit to 2 lines */
+    overflow: hidden;
+  }
+
+  .product-layout .card p {
+    display: none !important;
+  }
+
+  .product-layout .card .vendor-info,
+  .product-layout .card .price-section {
+    margin-top: auto;
+  }
+
+  /* Price styling */
+  .product-layout .card span {
+    font-size: 0.9rem !important;
+  }
+
+  .product-layout .card .btn {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  /* Adjust Image size */
+  .product-layout .card img {
+    height: 130px !important;
+  }
+
+  /* City Grid adjustments - No longer used but harmless */
+  .city-grid .card {
+    padding: 1rem !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Search Bar Fix */
+  .search-container {
+    width: 100% !important;
+    padding: 0.75rem !important;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-radius: 1rem !important;
+  }
+
+  .search-container input {
+    width: 100% !important;
+    margin-bottom: 0.5rem;
+  }
+
+  .search-container button {
+    width: 100% !important;
+  }
+
+  /* Header / Nav Fixes */
+  .nav {
+    padding: 0 1rem;
+    height: 60px;
+  }
+
+  .nav-logo span {
+    font-size: 1.2rem !important;
+  }
+
+  /* Mobile Menu Button Display */
+  .mobile-menu-btn {
+    display: block;
+    z-index: 200;
+  }
+
+  /* Mobile Menu Drawer */
+  .nav-links {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 80%;
+    max-width: 300px;
+    height: 100vh;
+    background: var(--surface);
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 6rem 1.5rem 2rem;
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.15);
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 1.25rem;
+    z-index: 150;
+    overflow-y: auto;
+    /* Added padding-bottom to ensure last items are visible if menu is long */
+    padding-bottom: 2rem;
+  }
+
+  .nav-links.active {
+    right: 0;
+  }
+}
+
+
+/* Product Detail Page - Mobile Bottom Bar */
+.mobile-enquire-bar {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-enquire-bar {
+    display: flex !important;
+  }
+
+  .desktop-enquire {
+    display: none !important;
+  }
+
+  /* Retain padding for the fixed footer content */
+  .product-detail-grid {
+    padding-bottom: 2rem;
+  }
+}
+
+/* Small Phone Adjustments */
+@media (max-width: 380px) {
+  h1 {
+    font-size: 1.75rem !important;
+  }
+
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}

@@ -1,10 +1,24 @@
 import Link from 'next/link';
 import { Calendar, User, ArrowLeft } from 'lucide-react';
-import { blogPosts } from '../../../lib/blogData';
+import { promises as fs } from 'fs';
+import path from 'path';
+
+async function getData() {
+    const filePath = path.join(process.cwd(), 'lib/data.json');
+    try {
+        const jsonData = await fs.readFile(filePath, 'utf8');
+        return JSON.parse(jsonData);
+    } catch {
+        return { posts: [] };
+    }
+}
 
 export default async function BlogPost({ params }) {
     const { id } = await params;
-    const post = blogPosts.find(p => p.id === parseInt(id));
+    const data = await getData();
+    const posts = data.posts || [];
+    // ID in JSON is string usually, but let's check loose equality
+    const post = posts.find(p => p.id == id);
 
     if (!post) {
         return (

@@ -15,10 +15,8 @@ export default function SearchBar() {
     };
 
     return (
-        <form onSubmit={handleSearch} style={{
+        <form onSubmit={handleSearch} className="search-container" style={{
             background: 'white',
-            maxWidth: '600px',
-            margin: '0 auto',
             padding: '1rem',
             borderRadius: '50px',
             display: 'flex',

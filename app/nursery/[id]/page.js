@@ -4,6 +4,20 @@ import Link from 'next/link';
 import { MapPin, Phone, Mail, Globe, Users, Star, MessageCircle, Instagram, Facebook, Twitter, Youtube } from 'lucide-react';
 import ProductCard from '../../components/ProductCard';
 
+// Shared Specialty Images
+const SPECIALTY_IMAGES = {
+    'Indoor': 'https://images.unsplash.com/photo-1599687351724-dfa3c4ff81b1?auto=format&fit=crop&w=150&q=80',
+    'Outdoor': 'https://images.unsplash.com/photo-1614594975525-e45852b82481?auto=format&fit=crop&w=150&q=80',
+    'Flowering': 'https://images.unsplash.com/photo-1598512752271-33f913a5af13?auto=format&fit=crop&w=150&q=80',
+    'Fruit': 'https://images.unsplash.com/photo-1622383563227-0430138f2976?auto=format&fit=crop&w=150&q=80',
+    'Medicinal': 'https://images.unsplash.com/photo-1526304640152-d4619684e484?auto=format&fit=crop&w=150&q=80',
+    'Succulents': 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=150&q=80',
+    'Seeds': 'https://images.unsplash.com/photo-1445510440086-60aca5c156dc?auto=format&fit=crop&w=150&q=80',
+    'Pots': 'https://images.unsplash.com/photo-1459156212016-c812468e2115?auto=format&fit=crop&w=150&q=80',
+    'Fertilizers': 'https://images.unsplash.com/photo-1622383563227-0430138f2976?auto=format&fit=crop&w=150&q=80'
+};
+const DEFAULT_CATEGORY_IMAGE = 'https://images.unsplash.com/photo-1526304640152-d4619684e484?auto=format&fit=crop&w=150&q=80';
+
 async function getData(nurseryId) {
     const filePath = path.join(process.cwd(), 'lib/data.json');
     const jsonData = await fs.readFile(filePath, 'utf8');
@@ -66,7 +80,7 @@ export default async function NurseryPage({ params }) {
                 }}></div>
                 <div className="container" style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: '3rem' }}>
                     <div style={{ maxWidth: '800px' }}>
-                        <h1 style={{ color: 'white', fontSize: '3.5rem', marginBottom: '0.5rem' }}>{nursery.name}</h1>
+                        <h1 style={{ color: 'white', fontSize: 'clamp(2rem, 5vw, 3.5rem)', marginBottom: '0.5rem' }}>{nursery.name}</h1>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <MapPin size={24} />
@@ -84,7 +98,7 @@ export default async function NurseryPage({ params }) {
             </div>
 
             <div className="container section">
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '3rem' }}>
+                <div className="nursery-layout">
 
                     {/* Main Content */}
                     <div>
@@ -95,11 +109,43 @@ export default async function NurseryPage({ params }) {
 
                             <div style={{ marginTop: '1.5rem' }}>
                                 <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Specialties:</h3>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '0.75rem',
+                                    overflowX: 'auto',
+                                    paddingBottom: '0.5rem',
+                                    scrollbarWidth: 'none'
+                                }}>
                                     {nursery.specialties?.map((tag, i) => (
-                                        <span key={i} className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.9rem', cursor: 'default' }}>
-                                            {tag}
-                                        </span>
+                                        <div key={i} style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            minWidth: '80px',
+                                            cursor: 'pointer',
+                                            flexShrink: 0
+                                        }}>
+                                            <div style={{
+                                                width: '75px',
+                                                height: '75px',
+                                                borderRadius: '50%',
+                                                overflow: 'hidden',
+                                                border: '2px solid #fff',
+                                                padding: '2px',
+                                                background: 'white',
+                                                boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                                            }}>
+                                                <img
+                                                    src={SPECIALTY_IMAGES[tag] || DEFAULT_CATEGORY_IMAGE}
+                                                    alt={tag}
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                                                />
+                                            </div>
+                                            <span style={{ fontSize: '0.8rem', fontWeight: 600, textAlign: 'center', color: '#333', lineHeight: 1.2 }}>
+                                                {tag}
+                                            </span>
+                                        </div>
                                     ))}
                                 </div>
                             </div>
@@ -109,9 +155,22 @@ export default async function NurseryPage({ params }) {
                         <div style={{ marginBottom: '3rem' }}>
                             <h2 style={{ borderBottom: '2px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>Gallery</h2>
                             {nursery.gallery && nursery.gallery.length > 0 ? (
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                                <div style={{
+                                    display: 'flex',
+                                    gap: '1rem',
+                                    overflowX: 'auto',
+                                    paddingBottom: '1rem',
+                                    scrollbarWidth: 'none'
+                                }}>
                                     {nursery.gallery.map((img, index) => (
-                                        <div key={index} style={{ height: '200px', borderRadius: '1rem', overflow: 'hidden' }}>
+                                        <div key={index} style={{
+                                            minWidth: '200px',
+                                            height: '200px',
+                                            borderRadius: '1rem',
+                                            overflow: 'hidden',
+                                            flexShrink: 0,
+                                            aspectRatio: '1/1'
+                                        }}>
                                             <img src={img} alt={`Gallery ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }} />
                                         </div>
                                     ))}
@@ -127,9 +186,16 @@ export default async function NurseryPage({ params }) {
                         <div style={{ marginBottom: '3rem' }}>
                             <h2 style={{ borderBottom: '2px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>Available Plants</h2>
                             {products.length > 0 ? (
-                                <div className="grid grid-cols-2">
+                                <div className="grid grid-cols-2" style={{ gap: '1.5rem' }}>
                                     {products.map(product => (
-                                        <ProductCard key={product.id} product={{ ...product, vendor: nursery.name }} />
+                                        <ProductCard
+                                            key={product.id}
+                                            product={{
+                                                ...product,
+                                                vendor: nursery.name,
+                                                nurseryPhone: nursery.contact?.phone // Passing phone for Enquire button
+                                            }}
+                                        />
                                     ))}
                                 </div>
                             ) : (
@@ -233,9 +299,14 @@ export default async function NurseryPage({ params }) {
                                 )}
                             </div>
 
-                            <button className="btn btn-primary" style={{ width: '100%', marginTop: '2rem' }}>
-                                Send Enquiry
-                            </button>
+                            <a
+                                href={`https://wa.me/${nursery.contact?.phone?.replace(/\D/g, '')}?text=Hi ${nursery.name}, I found your profile on PlantTrade and would like to enquire.`}
+                                target="_blank"
+                                className="btn btn-primary"
+                                style={{ width: '100%', marginTop: '2rem', textAlign: 'center', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                            >
+                                <MessageCircle size={18} /> Chat on WhatsApp
+                            </a>
                         </div>
 
                         {/* Map Embed */}

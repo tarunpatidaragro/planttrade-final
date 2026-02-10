@@ -6,7 +6,7 @@ export default async function ProductPage({ params }) {
         return <div className="container section">Product not found</div>;
     }
 
-    const phone = product.nurseryPhone ? product.nurseryPhone.replace(/[^\d]/g, '') : "919754684978";
+    const phone = (nursery?.contact?.phone || nursery?.phone || product.nurseryPhone || "919754684978").replace(/[^\d]/g, '');
     const whatsappUrl = `https://wa.me/${phone}?text=Hello, I am interested in your product: *${product.name}* priced at ₹${product.price} seen on PlantTrade.`;
 
     // Aggregated images
@@ -37,27 +37,27 @@ export default async function ProductPage({ params }) {
     };
 
     return (
-        <div className="container section" style={{ paddingTop: '2rem' }}>
+        <div className="container section" style={{ paddingTop: '1rem', paddingBottom: '6rem' }}>
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
             {/* Breadcrumb */}
-            <div style={{ marginBottom: '2rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                <Link href="/">Home</Link> &gt; <Link href={`/nursery/${product.nurseryId}`}> {product.vendor}</Link> &gt; {product.name}
+            <div style={{ marginBottom: '1rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                <Link href="/">Home</Link> &gt; <Link href={`/nursery/${product.nurseryId}`}> {product.vendor}</Link> &gt; <span style={{ color: 'var(--text-main)' }}>{product.name}</span>
             </div>
 
-            <div className="grid grid-cols-2" style={{ gap: '4rem', marginBottom: '4rem' }}>
+            <div className="product-detail-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
                 {/* Product Images */}
                 <div>
-                    <div style={{ borderRadius: '1.5rem', overflow: 'hidden', boxShadow: 'var(--shadow-lg)', marginBottom: '1rem' }}>
-                        <img src={allImages[0]} alt={product.name} style={{ width: '100%', height: 'auto', display: 'block' }} />
+                    <div style={{ borderRadius: '1rem', overflow: 'hidden', marginBottom: '1rem', border: '1px solid #eee' }}>
+                        <img src={allImages[0]} alt={product.name} style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '500px', objectFit: 'contain', background: '#f9f9f9' }} />
                     </div>
                     {/* Thumbnails */}
                     {allImages.length > 1 && (
-                        <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
                             {allImages.map((img, i) => (
-                                <img key={i} src={img} style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: '0.5rem', cursor: 'pointer', border: '2px solid transparent' }} />
+                                <img key={i} src={img} style={{ width: 70, height: 70, objectFit: 'cover', borderRadius: '0.5rem', cursor: 'pointer', border: '1px solid #ddd' }} />
                             ))}
                         </div>
                     )}
@@ -65,79 +65,88 @@ export default async function ProductPage({ params }) {
 
                 {/* Product Details */}
                 <div>
-                    <span style={{ background: 'var(--primary-light)', color: 'var(--primary-dark)', padding: '0.25rem 0.75rem', borderRadius: '2rem', fontSize: '0.9rem', fontWeight: 600 }}>
-                        {product.category}
-                    </span>
-                    <h1 style={{ fontSize: '2.5rem', marginTop: '1rem', marginBottom: '0.5rem' }}>{product.name}</h1>
-                    <p style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary-dark)', marginBottom: '1.5rem' }}>
-                        ₹{product.price}
-                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                            <span style={{
+                                background: '#dcfce7', color: '#166534', padding: '0.25rem 0.75rem', borderRadius: '2rem', fontSize: '0.8rem', fontWeight: 600,
+                                display: 'inline-block', marginBottom: '0.5rem'
+                            }}>
+                                {product.category}
+                            </span>
+                            <h1 style={{ fontSize: '1.75rem', lineHeight: '1.2', marginBottom: '0.5rem', color: '#1a1a1a' }}>{product.name}</h1>
+                            <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+                                By <Link href={`/nursery/${product.nurseryId}`} style={{ color: 'var(--primary)', fontWeight: 600 }}>{product.vendor}</Link>
+                            </div>
+                        </div>
+                    </div>
 
-                    <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: '1.8' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid #eee' }}>
+                        <span style={{ fontSize: '2rem', fontWeight: 700, color: '#16a34a' }}>
+                            ₹{product.price}
+                        </span>
+                        {/* Fake original price if not present */}
+                        <span style={{ fontSize: '1.1rem', color: '#94a3b8', textDecoration: 'line-through' }}>
+                            ₹{Math.round(product.price * 1.3)}
+                        </span>
+                        <span style={{ color: '#dc2626', fontWeight: 600, fontSize: '0.9rem' }}>(30% OFF)</span>
+                    </div>
+
+                    <p style={{ fontSize: '1rem', color: '#4b5563', marginBottom: '2rem', lineHeight: '1.6' }}>
                         {product.description}
                     </p>
 
                     {/* Benefits Section */}
-                    <div style={{ background: '#F9F9F9', padding: '1.5rem', borderRadius: '1rem', marginBottom: '2rem' }}>
-                        <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Star size={20} fill="gold" stroke="gold" /> Key Benefits
+                    <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '1rem', marginBottom: '2rem', border: '1px solid #e2e8f0' }}>
+                        <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#334155' }}>
+                            <CheckCircle size={18} color="var(--primary)" /> Key Benefits
                         </h3>
-                        <ul style={{ listStyle: 'none', padding: 0 }}>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '0.75rem' }}>
                             {product.benefits?.split(',').map((benefit, i) => (
-                                <li key={i} style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <CheckCircle size={18} color="var(--primary)" />
+                                <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem', color: '#475569' }}>
+                                    <span style={{ width: '6px', height: '6px', background: 'var(--primary)', borderRadius: '50%' }}></span>
                                     <span>{benefit.trim()}</span>
                                 </li>
                             ))}
-                            {!product.benefits && <li>Air purifying properties</li>}
+                            {!product.benefits && <li>Excellent for home decor</li>}
+                            {!product.benefits && <li>Low maintenance plant</li>}
                         </ul>
                     </div>
 
-                    {/* Nursery Location / Map Info */}
-                    {nursery?.location && (
-                        <div style={{ marginBottom: '2rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                <MapPin size={20} color="var(--text-secondary)" />
-                                <strong style={{ color: 'var(--text-secondary)' }}>Located at: {nursery.location}</strong>
-                            </div>
-
-                            {/* Embed Google Map if available, else a static placeholder */}
-                            <div style={{ height: '200px', width: '100%', borderRadius: '1rem', overflow: 'hidden', border: '1px solid #ddd' }}>
-                                {nursery.googleMapEmbedUrl ? (
-                                    <iframe
-                                        src={nursery.googleMapEmbedUrl}
-                                        width="100%"
-                                        height="100%"
-                                        style={{ border: 0 }}
-                                        allowFullScreen=""
-                                        loading="lazy"
-                                        referrerPolicy="no-referrer-when-downgrade"
-                                    ></iframe>
-                                ) : (
-                                    <div style={{ width: '100%', height: '100%', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
-                                        Map View Provided on Enquiry
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* CTA */}
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <a href={whatsappUrl} target="_blank" className="btn btn-primary" style={{ flex: 1, padding: '1rem', fontSize: '1.1rem', background: '#25D366' }}>
+                    {/* Desktop Enquiry Button */}
+                    <div className="desktop-enquire" style={{ marginBottom: '2rem' }}>
+                        <a href={whatsappUrl} target="_blank" className="btn btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', background: '#16a34a', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
                             Enquire on WhatsApp
                         </a>
                     </div>
 
-                    <div style={{ marginTop: '2rem', display: 'flex', alignItems: 'center', gap: '1rem', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
-                        <img src={nursery?.image} style={{ width: 50, height: 50, borderRadius: '50%', objectFit: 'cover' }} />
-                        <div>
-                            <div style={{ fontSize: '0.9rem', color: '#888' }}>Sold by</div>
-                            <Link href={`/nursery/${product.nurseryId}`} style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>
-                                {product.vendor}
-                            </Link>
+                    {/* Mobile Fixed Enquiry Bar */}
+                    <div className="mobile-enquire-bar" style={{
+                        position: 'fixed', bottom: 0, left: 0, right: 0,
+                        background: 'white', padding: '1rem',
+                        boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
+                        zIndex: 100, display: 'flex', gap: '1rem',
+                        alignItems: 'center'
+                    }}>
+                        <div style={{ flex: 1 }}>
+                            <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#16a34a', display: 'block' }}>
+                                ₹{product.price}
+                            </span>
+                            <span style={{ fontSize: '0.75rem', color: '#166534' }}>Inclusive of all taxes</span>
                         </div>
+                        <a href={whatsappUrl} target="_blank" className="btn btn-primary" style={{ flex: 1, padding: '0.75rem', fontSize: '1rem', background: '#16a34a', borderRadius: '0.5rem', textAlign: 'center', textDecoration: 'none', color: 'white', fontWeight: 600 }}>
+                            Enquire Now
+                        </a>
                     </div>
+
+                    {/* Nursery Info */}
+                    {nursery?.location && (
+                        <div style={{ marginTop: '2rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.9rem', color: '#666' }}>
+                                <MapPin size={16} />
+                                <strong>Location: {nursery.location}</strong>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 

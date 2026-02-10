@@ -5,46 +5,97 @@ import Link from 'next/link';
 import NurseryCard from './NurseryCard';
 import ProductCard from './ProductCard';
 import SearchBar from './SearchBar';
-import { Sprout, Flower, Trees, Leaf, Microscope, Sun, MapPin, X, Info, Map as MapIcon, Calendar, User } from 'lucide-react';
+import { Sprout, Flower, Trees, Leaf, Microscope, Sun, MapPin, X, Info, Map as MapIcon, Calendar, User, ChevronDown } from 'lucide-react';
 
-const categories = [
-    { name: 'Tissue Culture', icon: <Microscope size={32} />, query: 'Tissue Culture' },
-    { name: 'Medicinal', icon: <Leaf size={32} />, query: 'Medicinal' },
-    { name: 'Flowering', icon: <Flower size={32} />, query: 'Flowering' },
-    { name: 'Indoor', icon: <Sprout size={32} />, query: 'Indoor' },
-    { name: 'Fruit & Veg', icon: <Sun size={32} />, query: 'Fruit' },
-    { name: 'Forestry', icon: <Trees size={32} />, query: 'Outdoor' },
-];
+const SPECIALTY_IMAGES = {
+    'Indoor': 'https://images.unsplash.com/photo-1599687351724-dfa3c4ff81b1?auto=format&fit=crop&w=150&q=80',
+    'Outdoor': 'https://images.unsplash.com/photo-1614594975525-e45852b82481?auto=format&fit=crop&w=150&q=80',
+    'Flowering': 'https://images.unsplash.com/photo-1598512752271-33f913a5af13?auto=format&fit=crop&w=150&q=80',
+    'Fruit': 'https://images.unsplash.com/photo-1622383563227-0430138f2976?auto=format&fit=crop&w=150&q=80',
+    'Medicinal': 'https://images.unsplash.com/photo-1526304640152-d4619684e484?auto=format&fit=crop&w=150&q=80',
+    'Succulents': 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=150&q=80',
+    'Seeds': 'https://images.unsplash.com/photo-1445510440086-60aca5c156dc?auto=format&fit=crop&w=150&q=80',
+    'Pots': 'https://images.unsplash.com/photo-1459156212016-c812468e2115?auto=format&fit=crop&w=150&q=80',
+    'Fertilizers': 'https://images.unsplash.com/photo-1622383563227-0430138f2976?auto=format&fit=crop&w=150&q=80'
+};
 
-export default function HomeFeed({ nurseries, products, posts }) {
+const DEFAULT_CATEGORY_IMAGE = 'https://images.unsplash.com/photo-1526304640152-d4619684e484?auto=format&fit=crop&w=150&q=80';
+
+export default function HomeFeed({ nurseries, products, posts, categories }) {
     const [location, setLocation] = useState('');
     const [filteredNurseries, setFilteredNurseries] = useState(nurseries);
     const [filteredProducts, setFilteredProducts] = useState(products);
     const [isLocationModalOpen, setLocationModalOpen] = useState(false);
     const [nearbyMessage, setNearbyMessage] = useState('');
     const [discoveredCities, setDiscoveredCities] = useState([]);
+    // Use passed categories if available, else derive (fallback logic removed for simplicity as we want admin controlled)
+    const [dynamicCategories, setDynamicCategories] = useState(categories && categories.length > 0 ? categories : []);
 
     useEffect(() => {
         const savedLoc = localStorage.getItem('userLocation');
         if (savedLoc) {
             setLocation(savedLoc);
-            // We pass null for lat/lng initially if loading from storage string only
-            // But ideally we should store lat/lng too. For now recalculate or simple filter.
             applyFilter(savedLoc);
         }
 
-        // Extract unique cities (simple logic: parsed from location string or city field)
+        // Extract unique cities
         const cities = new Set();
+
         nurseries.forEach(n => {
             if (n.contact?.city) cities.add(n.contact.city);
             else if (n.location) {
-                // Try to guess city from "City, State"
                 const parts = n.location.split(',');
                 if (parts.length > 0) cities.add(parts[0].trim());
             }
         });
-        setDiscoveredCities(Array.from(cities).slice(0, 8)); // Top 8 cities
-    }, []);
+
+        setDiscoveredCities(Array.from(cities));
+
+        // If categories prop was empty/undefined (initial load without data), maybe we can derive?
+        // But we want Admin control. If categories is empty, we shout to Admin to add some!
+        // Or we use a default constant here if really needed.
+        if (!categories || categories.length === 0) {
+            // Fallback or leave empty
+        } else {
+            setDynamicCategories(categories);
+        }
+
+    }, [nurseries, categories]); // Re-run if nurseries prop changes (though usually static on page load)
+
+    // ... rest of code ... 
+
+    // I will now skip to the replacement of the Categories Section in the second chunk if possible, or just rely on 'dynamicCategories' state in render.
+    // I need to make sure I update the render to use 'dynamicCategories' instead of 'categories'.
+    // Because I am replacing lines 10-21 (imports to export default), I am injecting the state hooks.
+    // I need to be careful not to duplicate 'useEffect' logic or miss existing logic. 
+    // My replacement block above includes the START of the function.
+    // I need to make sure I include the existing 'useEffect' body or merge it?
+    // The existing 'useEffect' (lines 29-49) handles location and cities.
+    // I WILL REPLACE the 'categories' const AND the top part of 'HomeFeed' including 'useEffect'.
+
+    // Wait, the ReplacementContent above ends at `}, [nurseries]);`. 
+    // I need to check where `useEffect` ends in original file. Line 49.
+    // My replacement covers lines 10 to 49 approx.
+
+    // Original lines 10-19: `const categories = ...`
+    // Original lines 21: `export default function...`
+    // Original lines 22-28: `useState` hooks.
+    // Original lines 29-49: `useEffect`.
+
+    // My replacement includes all of this.
+    // I will verify `applyFilter` definition follows immediately.
+    // Line 51: `// Haversine formula...`
+    // Line 66: `const applyFilter ...`
+
+    // So I should end my replacement before line 51.
+
+    // Code looks correct.
+
+    // AND I need to update the Categories render loop (Lines 299-335).
+    // I will use `dynamicCategories` there. 
+    // I will use a separate `replace_file_content` for that, OR do it in one go if I use `multi_replace`.
+    // I'll use `multi_replace`.
+
 
     // Haversine formula to calculate distance in km
     const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -229,7 +280,7 @@ export default function HomeFeed({ nurseries, products, posts }) {
             )}
 
             <section className="section" style={{
-                background: 'linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url(https://images.unsplash.com/photo-1629197520635-c6328a95d737?auto=format&fit=crop&q=80&w=2000)',
+                background: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url(https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&q=80&w=2000)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 padding: '5rem 0',
@@ -252,55 +303,86 @@ export default function HomeFeed({ nurseries, products, posts }) {
             </section>
 
             {/* Discover Cities Section */}
-            <section className="container section" style={{ marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                    <MapIcon size={24} color="var(--primary)" />
-                    <h2 style={{ fontSize: '2rem', margin: 0 }}>Discover Nurseries by City</h2>
-                </div>
-
-                <div style={{
+            <div style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', padding: '0.75rem 0', marginBottom: '1.5rem', whiteSpace: 'nowrap' }}>
+                <div className="container" style={{
                     display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '1rem',
-                    justifyContent: 'center'
+                    gap: '2rem',
+                    overflowX: 'auto',
+                    scrollbarWidth: 'none',
+                    alignItems: 'center',
+                    paddingRight: '1rem' /* Handling padding manually for scroll */
                 }}>
+                    <span style={{ fontWeight: 600, color: '#333', display: 'flex', alignItems: 'center', gap: '0.25rem', borderRight: '1px solid #ddd', paddingRight: '1rem', marginRight: '-1rem' }}>
+                        <MapIcon size={16} /> Cities
+                    </span>
+
+                    {/* Horizontal List */}
                     {discoveredCities.map((city, i) => (
-                        <Link href={`/city/${city}`} key={i} className="card" style={{
+                        <Link href={`/city/${city}`} key={i} style={{
                             textDecoration: 'none',
-                            padding: '1rem 2rem',
+                            color: '#555',
+                            fontSize: '0.9rem',
+                            fontWeight: 500,
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '0.5rem',
-                            fontWeight: 600,
-                            color: 'var(--text-main)',
-                            transition: 'transform 0.2s',
-                            border: '1px solid #eee'
+                            gap: '0.25rem',
+                            flexShrink: 0
                         }}>
-                            <MapPin size={16} color="var(--primary)" /> {city}
+                            {city} <ChevronDown size={14} color="#999" />
                         </Link>
                     ))}
-                </div>
-            </section>
 
-            {/* Categories Section */}
-            <section className="container section" style={{ marginBottom: '1.5rem' }}>
-                <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.75rem' }}>Browse by Category</h2>
+                    <Link href="/nurseries" style={{
+                        textDecoration: 'none',
+                        color: 'var(--primary)',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        flexShrink: 0
+                    }}>
+                        All Cities
+                    </Link>
+                </div>
+            </div>
+
+            {/* Categories Section - Horizontal Scroll */}
+            <div className="section" style={{ paddingTop: '1rem', paddingBottom: '1rem', background: 'white' }}>
                 <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
-                    gap: '1rem',
-                    textAlign: 'center'
+                    display: 'flex',
+                    overflowX: 'auto',
+                    gap: '1.5rem',
+                    padding: '0 1rem',
+                    scrollbarWidth: 'none',
+                    paddingBottom: '0.5rem'
                 }}>
-                    {categories.map((cat, i) => (
-                        <Link href={`/nurseries?q=${cat.query}`} key={i} style={{ textDecoration: 'none' }}>
-                            <div className="category-icon">
-                                {cat.icon}
+                    {dynamicCategories.map((cat, i) => (
+                        <Link href={`/nurseries?q=${encodeURIComponent(cat.name)}`} key={i} style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            minWidth: '80px',
+                            cursor: 'pointer',
+                            textDecoration: 'none'
+                        }}>
+                            <div style={{
+                                width: '75px',
+                                height: '75px',
+                                borderRadius: '50%',
+                                overflow: 'hidden',
+                                border: '2px solid #fff',
+                                padding: '2px', // gap between border and image
+                                background: 'white',
+                                boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+                            }}>
+                                <img src={cat.image} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                             </div>
-                            <h3 style={{ fontSize: '1rem', color: 'var(--text-main)' }}>{cat.name}</h3>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, textAlign: 'center', color: '#333', lineHeight: 1.2 }}>
+                                {cat.name}
+                            </span>
                         </Link>
                     ))}
                 </div>
-            </section>
+            </div>
 
             {/* Featured Nurseries */}
             <section className="container section" style={{ marginBottom: '2rem' }}>
@@ -335,9 +417,11 @@ export default function HomeFeed({ nurseries, products, posts }) {
                     </div>
 
                     <div className="grid grid-cols-4" style={{ gap: '1.5rem' }}>
-                        {filteredProducts.map(product => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
+                        {filteredProducts.map(product => {
+                            const nursery = nurseries.find(n => n.id === product.nurseryId); // Find nursery for phone
+                            const productWithPhone = { ...product, nurseryPhone: nursery?.contact?.phone || nursery?.phone };
+                            return <ProductCard key={product.id} product={productWithPhone} />
+                        })}
                     </div>
 
                     <div style={{ textAlign: 'center', marginTop: '2rem' }}>
