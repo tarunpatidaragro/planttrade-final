@@ -273,26 +273,31 @@ export default async function NurseryPage({ params }) {
                                 </div>
 
                                 {/* Social Media */}
-                                {nursery.socials && (
+                                {(nursery.socials || nursery.social) && (
                                     <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                                        {nursery.socials.instagram && (
-                                            <a href={nursery.socials.instagram} target="_blank" style={{ color: '#E1306C' }}>
+                                        {(nursery.socials?.instagram || nursery.social?.instagram) && (
+                                            <a href={nursery.socials?.instagram || nursery.social?.instagram} target="_blank" style={{ color: '#E1306C' }}>
                                                 <Instagram size={24} />
                                             </a>
                                         )}
-                                        {nursery.socials.facebook && (
-                                            <a href={nursery.socials.facebook} target="_blank" style={{ color: '#1877F2' }}>
+                                        {(nursery.socials?.facebook || nursery.social?.facebook) && (
+                                            <a href={nursery.socials?.facebook || nursery.social?.facebook} target="_blank" style={{ color: '#1877F2' }}>
                                                 <Facebook size={24} />
                                             </a>
                                         )}
-                                        {nursery.socials.twitter && (
-                                            <a href={nursery.socials.twitter} target="_blank" style={{ color: '#1DA1F2' }}>
+                                        {(nursery.socials?.twitter || nursery.social?.twitter) && (
+                                            <a href={nursery.socials?.twitter || nursery.social?.twitter} target="_blank" style={{ color: '#1DA1F2' }}>
                                                 <Twitter size={24} />
                                             </a>
                                         )}
-                                        {nursery.socials.youtube && (
-                                            <a href={nursery.socials.youtube} target="_blank" style={{ color: '#FF0000' }}>
+                                        {(nursery.socials?.youtube || nursery.social?.youtube) && (
+                                            <a href={nursery.socials?.youtube || nursery.social?.youtube} target="_blank" style={{ color: '#FF0000' }}>
                                                 <Youtube size={24} />
+                                            </a>
+                                        )}
+                                        {(nursery.socials?.whatsapp || nursery.social?.whatsapp) && (
+                                            <a href={nursery.socials?.whatsapp || nursery.social?.whatsapp} target="_blank" style={{ color: '#25D366' }}>
+                                                <MessageCircle size={24} />
                                             </a>
                                         )}
                                     </div>

@@ -139,7 +139,17 @@ export default function HomeFeed({ nurseries, products, posts, categories }) {
 
         // 1. Try finding exact location matches first (String Match)
         const lowerLoc = locText ? locText.toLowerCase() : '';
-        const exactMatches = nurseries.filter(n => n.location?.toLowerCase().includes(lowerLoc));
+        const exactMatches = nurseries.filter(n => {
+            // Check formatted string
+            if (n.location?.toLowerCase().includes(lowerLoc)) return true;
+
+            // Check structured data
+            if (n.contact?.city?.toLowerCase().includes(lowerLoc)) return true;
+            if (n.contact?.state?.toLowerCase().includes(lowerLoc)) return true;
+            if (n.contact?.address?.toLowerCase().includes(lowerLoc)) return true;
+
+            return false;
+        });
 
         let results = [];
         let message = '';

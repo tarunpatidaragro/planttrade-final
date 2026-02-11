@@ -166,7 +166,7 @@ export default function AdminLayout({ children }) {
                         <MenuItem icon={<Store size={20} />} label="Nurseries" href="/admin/nurseries" sidebarOpen={sidebarOpen} active={pathname.startsWith('/admin/nurseries')} />
                         <MenuItem icon={<ShoppingBag size={20} />} label="Products" href="/admin/products" sidebarOpen={sidebarOpen} active={pathname.startsWith('/admin/products')} />
                         <MenuItem icon={<List size={20} />} label="Categories" href="/admin/categories" sidebarOpen={sidebarOpen} active={pathname.startsWith('/admin/categories')} />
-                        <MenuItem icon={<ImageIcon size={20} />} label="Banners" href="/admin/banners" sidebarOpen={sidebarOpen} active={pathname.startsWith('/admin/banners')} />
+                        <MenuItem icon={<Settings size={20} />} label="Site Settings" href="/admin/settings" sidebarOpen={sidebarOpen} active={pathname.startsWith('/admin/settings')} />
                         <MenuItem icon={<FileText size={20} />} label="Blogs" href="/admin/blogs" sidebarOpen={sidebarOpen} active={pathname.startsWith('/admin/blogs')} />
                         <div style={{ padding: '0.75rem 1.5rem', fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, display: sidebarOpen ? 'block' : 'none' }}>Insights</div>
                         <MenuItem icon={<BarChart size={20} />} label="Analytics" href="/admin/analytics" sidebarOpen={sidebarOpen} active={pathname.startsWith('/admin/analytics')} />
