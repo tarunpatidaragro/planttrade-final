@@ -1,32 +1,54 @@
+import dbConnect from '@/lib/mongoose';
+import Nursery from '@/models/Nursery';
+import Product from '@/models/Product';
 import { promises as fs } from 'fs';
 import path from 'path';
-import Link from 'next/link';
-import { MapPin, Phone, Mail, Globe, Users, Star, MessageCircle, Instagram, Facebook, Twitter, Youtube } from 'lucide-react';
-import ProductCard from '../../components/ProductCard';
-
-// Shared Specialty Images
-const SPECIALTY_IMAGES = {
-    'Indoor': 'https://images.unsplash.com/photo-1599687351724-dfa3c4ff81b1?auto=format&fit=crop&w=150&q=80',
-    'Outdoor': 'https://images.unsplash.com/photo-1614594975525-e45852b82481?auto=format&fit=crop&w=150&q=80',
-    'Flowering': 'https://images.unsplash.com/photo-1598512752271-33f913a5af13?auto=format&fit=crop&w=150&q=80',
-    'Fruit': 'https://images.unsplash.com/photo-1622383563227-0430138f2976?auto=format&fit=crop&w=150&q=80',
-    'Medicinal': 'https://images.unsplash.com/photo-1526304640152-d4619684e484?auto=format&fit=crop&w=150&q=80',
-    'Succulents': 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=150&q=80',
-    'Seeds': 'https://images.unsplash.com/photo-1445510440086-60aca5c156dc?auto=format&fit=crop&w=150&q=80',
-    'Pots': 'https://images.unsplash.com/photo-1459156212016-c812468e2115?auto=format&fit=crop&w=150&q=80',
-    'Fertilizers': 'https://images.unsplash.com/photo-1622383563227-0430138f2976?auto=format&fit=crop&w=150&q=80'
-};
-const DEFAULT_CATEGORY_IMAGE = 'https://images.unsplash.com/photo-1526304640152-d4619684e484?auto=format&fit=crop&w=150&q=80';
 
 async function getData(nurseryId) {
-    const filePath = path.join(process.cwd(), 'lib/data.json');
-    const jsonData = await fs.readFile(filePath, 'utf8');
-    const data = JSON.parse(jsonData);
+    try {
+        await dbConnect();
 
-    const nursery = data.nurseries.find(n => n.id === nurseryId);
-    const products = data.products.filter(p => p.nurseryId === nurseryId);
+        // Try precise match on 'id' string first (slug), then fallback to _id if it looks like an ObjectId
+        let nursery = await Nursery.findOne({ id: nurseryId }).lean();
 
-    return { nursery, products };
+        if (!nursery && nurseryId.match(/^[0-9a-fA-F]{24}$/)) {
+            nursery = await Nursery.findById(nurseryId).lean();
+        }
+
+        if (!nursery) return { nursery: null, products: [] };
+
+        // Convert _id to string
+        nursery._id = nursery._id.toString();
+
+        // Fetch products for this nursery
+        // Support both old 'nurseryId' (string) and new 'nursery' (ObjectId) references
+        const products = await Product.find({
+            $or: [
+                { nurseryId: nursery.id },
+                { nursery: nursery._id }
+            ]
+        }).lean();
+
+        return {
+            nursery,
+            products: products.map(p => ({ ...p, _id: p._id.toString() }))
+        };
+
+    } catch (e) {
+        console.warn("MongoDB Fetch Error (Nursery Detail):", e);
+        // Local Fallback
+        if (process.env.NODE_ENV !== 'production') {
+            const filePath = path.join(process.cwd(), 'lib/data.json');
+            try {
+                const jsonData = await fs.readFile(filePath, 'utf8');
+                const data = JSON.parse(jsonData);
+                const nursery = data.nurseries.find(n => n.id === nurseryId);
+                const products = data.products.filter(p => p.nurseryId === nurseryId);
+                return { nursery, products };
+            } catch (err) { return { nursery: null, products: [] }; }
+        }
+        return { nursery: null, products: [] };
+    }
 }
 
 export default async function NurseryPage({ params }) {
