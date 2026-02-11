@@ -59,12 +59,12 @@ export default function NurseriesList() {
                                 </td>
                                 <td style={{ padding: '1rem' }}>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
-                                        {nursery.specialties?.slice(0, 3).map((tag, i) => (
+                                        {(nursery.specialties || []).slice(0, 3).map((tag, i) => (
                                             <span key={i} style={{ background: '#ecfdf5', color: '#047857', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>
                                                 {tag}
                                             </span>
                                         ))}
-                                        {nursery.specialties?.length > 3 && <span style={{ fontSize: '0.75rem', color: '#64748b' }}>+{nursery.specialties.length - 3}</span>}
+                                        {(nursery.specialties || []).length > 3 && <span style={{ fontSize: '0.75rem', color: '#64748b' }}>+{(nursery.specialties || []).length - 3}</span>}
                                     </div>
                                 </td>
                                 <td style={{ padding: '1rem', textAlign: 'right' }}>
