@@ -3,6 +3,23 @@ import Nursery from '@/models/Nursery';
 import Product from '@/models/Product';
 import { promises as fs } from 'fs';
 import path from 'path';
+import Link from 'next/link';
+import { MapPin, Phone, Mail, Globe, Users, Star, MessageCircle, Instagram, Facebook, Twitter, Youtube, Clock } from 'lucide-react';
+import ProductCard from '../../components/ProductCard';
+
+// Shared Specialty Images
+const SPECIALTY_IMAGES = {
+    'Indoor': 'https://images.unsplash.com/photo-1599687351724-dfa3c4ff81b1?auto=format&fit=crop&w=150&q=80',
+    'Outdoor': 'https://images.unsplash.com/photo-1614594975525-e45852b82481?auto=format&fit=crop&w=150&q=80',
+    'Flowering': 'https://images.unsplash.com/photo-1598512752271-33f913a5af13?auto=format&fit=crop&w=150&q=80',
+    'Fruit': 'https://images.unsplash.com/photo-1622383563227-0430138f2976?auto=format&fit=crop&w=150&q=80',
+    'Medicinal': 'https://images.unsplash.com/photo-1526304640152-d4619684e484?auto=format&fit=crop&w=150&q=80',
+    'Succulents': 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=150&q=80',
+    'Seeds': 'https://images.unsplash.com/photo-1445510440086-60aca5c156dc?auto=format&fit=crop&w=150&q=80',
+    'Pots': 'https://images.unsplash.com/photo-1459156212016-c812468e2115?auto=format&fit=crop&w=150&q=80',
+    'Fertilizers': 'https://images.unsplash.com/photo-1622383563227-0430138f2976?auto=format&fit=crop&w=150&q=80'
+};
+const DEFAULT_CATEGORY_IMAGE = 'https://images.unsplash.com/photo-1526304640152-d4619684e484?auto=format&fit=crop&w=150&q=80';
 
 async function getData(nurseryId) {
     try {
