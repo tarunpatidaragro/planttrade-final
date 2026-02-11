@@ -54,6 +54,7 @@ export default function EditNurseryPage({ params }) {
                     name: data.name || '',
                     description: data.description || '',
                     image: data.image || '',
+                    documents: data.documents || [],
                     gallery: data.gallery || [],
                     specialties: data.specialties || [],
                     website: data.website || '',
@@ -91,9 +92,9 @@ export default function EditNurseryPage({ params }) {
     const fileToBase64 = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.readAsDataURL(file);
             reader.onload = () => resolve(reader.result);
             reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
         });
     };
 
@@ -162,6 +163,7 @@ export default function EditNurseryPage({ params }) {
             name: formData.name,
             description: formData.description,
             image: formData.image,
+            documents: formData.documents,
             gallery: formData.gallery,
             lat: formData.lat || null,
             lng: formData.lng || null,
@@ -252,6 +254,31 @@ export default function EditNurseryPage({ params }) {
                                 <label className="label">Description</label>
                                 <textarea className="input" style={{ width: '100%' }} rows={4} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
                             </div>
+
+                            {/* Documents Section */}
+                            <div>
+                                <label className="label">Documents</label>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    {(formData.documents || []).map((doc, idx) => (
+                                        <div key={idx} style={{ padding: '0.5rem', background: '#f0f9ff', borderRadius: '4px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#0369a1' }}>
+                                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Document {idx + 1}</span>
+                                            <button type="button" onClick={() => setFormData(prev => ({ ...prev, documents: prev.documents.filter((_, i) => i !== idx) }))} style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}><X size={14} /></button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <label className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', fontSize: '0.9rem', padding: '0.5rem 1rem' }}>
+                                    <Upload size={14} style={{ marginRight: '5px' }} /> Upload PDF
+                                    <input type="file" accept="application/pdf" onChange={async (e) => {
+                                        const file = e.target.files[0];
+                                        if (!file) return;
+                                        try {
+                                            const base64 = await fileToBase64(file);
+                                            setFormData(prev => ({ ...prev, documents: [...(prev.documents || []), base64] }));
+                                        } catch (e) { alert('Error reading file'); }
+                                    }} style={{ display: 'none' }} />
+                                </label>
+                            </div>
+
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div>
                                     <label className="label">Website</label>
