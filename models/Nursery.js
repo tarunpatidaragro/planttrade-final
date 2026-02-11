@@ -15,6 +15,7 @@ const NurserySchema = new mongoose.Schema({
     lat: Number,
     lng: Number,
     googleMapEmbedUrl: String,
+    documents: [String], // Array of PDF URLs or Base64 strings
 
     contact: {
         person: String,
