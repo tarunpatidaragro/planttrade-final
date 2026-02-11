@@ -118,8 +118,28 @@ export default function AddNurseryPage() {
         }
     };
 
+    const [errors, setErrors] = useState({});
+
+    const validate = () => {
+        const newErrors = {};
+        if (!formData.name.trim()) newErrors.name = 'Nursery Name is required';
+        if (!formData.city.trim()) newErrors.city = 'City is required';
+        if (!formData.state.trim()) newErrors.state = 'State is required';
+        if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setErrors({});
+
+        if (!validate()) {
+            alert("Please fix the errors in the form before saving.");
+            return;
+        }
+
         setIsLoading(true);
 
         // Construct final payload
@@ -128,6 +148,7 @@ export default function AddNurseryPage() {
             id: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
             name: formData.name,
             description: formData.description,
+            openingHours: formData.openingHours || '9:00 AM - 7:00 PM',
             image: formData.image,
             gallery: formData.gallery,
             lat: formData.lat || null,
@@ -166,7 +187,8 @@ export default function AddNurseryPage() {
                 alert('Nursery Added Successfully!');
                 router.push('/admin/nurseries');
             } else {
-                alert('Failed to add nursery.');
+                const data = await res.json();
+                alert(data.error || 'Failed to add nursery.');
             }
         } catch (err) {
             console.error(err);
@@ -228,7 +250,12 @@ export default function AddNurseryPage() {
                         <div style={{ display: 'grid', gap: '1rem' }}>
                             <div>
                                 <label className="label">Nursery Name *</label>
-                                <input className="input" style={{ width: '100%' }} value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required placeholder="e.g. Green Paradise Nursery" />
+                                <input className="input" style={{ width: '100%', borderColor: errors.name ? 'red' : '' }} value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Green Paradise Nursery" />
+                                {errors.name && <div style={{ color: 'red', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.name}</div>}
+                            </div>
+                            <div>
+                                <label className="label">Opening Hours</label>
+                                <input className="input" style={{ width: '100%' }} value={formData.openingHours || ''} onChange={e => setFormData({ ...formData, openingHours: e.target.value })} placeholder="e.g. Mon-Sat: 9 AM - 7 PM" />
                             </div>
                             <div>
                                 <label className="label">Description</label>
@@ -256,15 +283,17 @@ export default function AddNurseryPage() {
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                             <div>
                                 <label className="label">City *</label>
-                                <input className="input" style={{ width: '100%' }} value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} required placeholder="Pune" />
+                                <input className="input" style={{ width: '100%', borderColor: errors.city ? 'red' : '' }} value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} placeholder="Pune" />
+                                {errors.city && <div style={{ color: 'red', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.city}</div>}
                             </div>
                             <div>
                                 <label className="label">State *</label>
-                                <input className="input" style={{ width: '100%' }} value={formData.state} onChange={e => setFormData({ ...formData, state: e.target.value })} required placeholder="Maharashtra" />
+                                <input className="input" style={{ width: '100%', borderColor: errors.state ? 'red' : '' }} value={formData.state} onChange={e => setFormData({ ...formData, state: e.target.value })} placeholder="Maharashtra" />
+                                {errors.state && <div style={{ color: 'red', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.state}</div>}
                             </div>
                             <div>
                                 <label className="label">Pincode *</label>
-                                <input className="input" style={{ width: '100%' }} value={formData.pincode} onChange={e => setFormData({ ...formData, pincode: e.target.value })} required placeholder="411001" />
+                                <input className="input" style={{ width: '100%' }} value={formData.pincode} onChange={e => setFormData({ ...formData, pincode: e.target.value })} placeholder="411001" />
                             </div>
                             <div>
                                 <label className="label">Address Line</label>
@@ -309,7 +338,8 @@ export default function AddNurseryPage() {
                             </div>
                             <div>
                                 <label className="label">Phone / Mobile * (Required)</label>
-                                <input className="input" style={{ width: '100%' }} value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required placeholder="+91..." />
+                                <input className="input" style={{ width: '100%', borderColor: errors.phone ? 'red' : '' }} value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} placeholder="+91..." />
+                                {errors.phone && <div style={{ color: 'red', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.phone}</div>}
                             </div>
                             <div style={{ gridColumn: 'span 2' }}>
                                 <label className="label">Email Address</label>

@@ -3,7 +3,7 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { promises as fs } from 'fs';
+
 
 export default function EditProductPage({ params }) {
     const { id } = use(params);

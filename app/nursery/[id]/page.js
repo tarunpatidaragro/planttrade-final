@@ -271,38 +271,47 @@ export default async function NurseryPage({ params }) {
                                         <p style={{ fontSize: '0.9rem' }}>{nursery.contact.address}</p>
                                     </div>
                                 </div>
-
-                                {/* Social Media */}
-                                {(nursery.socials || nursery.social) && (
-                                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                                        {(nursery.socials?.instagram || nursery.social?.instagram) && (
-                                            <a href={nursery.socials?.instagram || nursery.social?.instagram} target="_blank" style={{ color: '#E1306C' }}>
-                                                <Instagram size={24} />
-                                            </a>
-                                        )}
-                                        {(nursery.socials?.facebook || nursery.social?.facebook) && (
-                                            <a href={nursery.socials?.facebook || nursery.social?.facebook} target="_blank" style={{ color: '#1877F2' }}>
-                                                <Facebook size={24} />
-                                            </a>
-                                        )}
-                                        {(nursery.socials?.twitter || nursery.social?.twitter) && (
-                                            <a href={nursery.socials?.twitter || nursery.social?.twitter} target="_blank" style={{ color: '#1DA1F2' }}>
-                                                <Twitter size={24} />
-                                            </a>
-                                        )}
-                                        {(nursery.socials?.youtube || nursery.social?.youtube) && (
-                                            <a href={nursery.socials?.youtube || nursery.social?.youtube} target="_blank" style={{ color: '#FF0000' }}>
-                                                <Youtube size={24} />
-                                            </a>
-                                        )}
-                                        {(nursery.socials?.whatsapp || nursery.social?.whatsapp) && (
-                                            <a href={nursery.socials?.whatsapp || nursery.social?.whatsapp} target="_blank" style={{ color: '#25D366' }}>
-                                                <MessageCircle size={24} />
-                                            </a>
-                                        )}
-                                    </div>
-                                )}
                             </div>
+
+                            {/* Opening Hours */}
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <div style={{ background: 'var(--background)', padding: '0.5rem', borderRadius: '50%', height: '40px' }}><Clock size={20} color="var(--primary)" /></div>
+                                <div>
+                                    <div className="label">Opening Hours</div>
+                                    <p style={{ fontSize: '0.9rem' }}>{nursery.openingHours || 'Mon-Sun: 9:00 AM - 7:00 PM'}</p>
+                                </div>
+                            </div>
+
+                            {/* Social Media */}
+                            {(nursery.socials || nursery.social) && (
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                                    {(nursery.socials?.instagram || nursery.social?.instagram) && (
+                                        <a href={nursery.socials?.instagram || nursery.social?.instagram} target="_blank" style={{ color: '#E1306C' }}>
+                                            <Instagram size={24} />
+                                        </a>
+                                    )}
+                                    {(nursery.socials?.facebook || nursery.social?.facebook) && (
+                                        <a href={nursery.socials?.facebook || nursery.social?.facebook} target="_blank" style={{ color: '#1877F2' }}>
+                                            <Facebook size={24} />
+                                        </a>
+                                    )}
+                                    {(nursery.socials?.twitter || nursery.social?.twitter) && (
+                                        <a href={nursery.socials?.twitter || nursery.social?.twitter} target="_blank" style={{ color: '#1DA1F2' }}>
+                                            <Twitter size={24} />
+                                        </a>
+                                    )}
+                                    {(nursery.socials?.youtube || nursery.social?.youtube) && (
+                                        <a href={nursery.socials?.youtube || nursery.social?.youtube} target="_blank" style={{ color: '#FF0000' }}>
+                                            <Youtube size={24} />
+                                        </a>
+                                    )}
+                                    {(nursery.socials?.whatsapp || nursery.social?.whatsapp) && (
+                                        <a href={nursery.socials?.whatsapp || nursery.social?.whatsapp} target="_blank" style={{ color: '#25D366' }}>
+                                            <MessageCircle size={24} />
+                                        </a>
+                                    )}
+                                </div>
+                            )}
 
                             <a
                                 href={`https://wa.me/${nursery.contact?.phone?.replace(/\D/g, '')}?text=Hi ${nursery.name}, I found your profile on PlantTrade and would like to enquire.`}

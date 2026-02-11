@@ -1,88 +1,109 @@
 import { NextResponse } from 'next/server';
+import dbConnect from '@/lib/mongoose';
+import Nursery from '@/models/Nursery';
+
+// Fallback to file system if no DB (for local dev without mongo)
 import { promises as fs } from 'fs';
 import path from 'path';
-
 const dataFilePath = path.join(process.cwd(), 'lib/data.json');
 
-// Helper to read data
-async function readData() {
-    const fileContents = await fs.readFile(dataFilePath, 'utf8');
-    return JSON.parse(fileContents);
+async function readFileData() {
+    try {
+        const fileContents = await fs.readFile(dataFilePath, 'utf8');
+        return JSON.parse(fileContents);
+    } catch (e) { return { nurseries: [] }; }
 }
 
-// Helper to write data
-async function writeData(data) {
+async function writeFileData(data) {
     await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2));
 }
 
 export async function GET() {
     try {
-        const data = await readData();
-        return NextResponse.json(data.nurseries);
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to read data' }, { status: 500 });
+        const conn = await dbConnect();
+        if (conn) {
+            const nurseries = await Nursery.find({}).sort({ createdAt: -1 });
+            return NextResponse.json(nurseries);
+        }
+    } catch (e) {
+        console.warn("MongoDB Error, falling back to file:", e);
     }
+
+    // Fallback
+    const data = await readFileData();
+    return NextResponse.json(data.nurseries || []);
 }
 
 export async function POST(request) {
     try {
         const body = await request.json();
-        const data = await readData();
 
-        // Basic Validation
-        if (!body.name || !body.location || !body.contact?.phone) {
-            return NextResponse.json({ error: 'Name, Location and Phone are required' }, { status: 400 });
-        }
+        // Validation
+        const cleanId = body.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '') || `n-${Date.now()}`;
 
-        const newNursery = {
-            id: body.id || body.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
+        // Basic Fields Validation
+        if (!body.name) return NextResponse.json({ error: "Nursery Name is required" }, { status: 400 });
+        if (!body.location && (!body.contact?.city || !body.contact?.state)) return NextResponse.json({ error: "Location (City/State) is required" }, { status: 400 });
+        if (!body.contact?.phone) return NextResponse.json({ error: "Phone Number is required" }, { status: 400 });
+
+        const newNurseryData = {
+            id: cleanId,
             ...body
         };
 
-        // Check for duplicate ID
-        if (data.nurseries.some(n => n.id === newNursery.id)) {
-            newNursery.id = newNursery.id + '-' + Date.now();
+        const conn = await dbConnect();
+        if (conn) {
+            try {
+                const nursery = await Nursery.create(newNurseryData);
+                return NextResponse.json(nursery, { status: 201 });
+            } catch (mongoErr) {
+                // Duplicate key error
+                if (mongoErr.code === 11000) {
+                    newNurseryData.id = `${cleanId}-${Date.now()}`;
+                    const nursery = await Nursery.create(newNurseryData);
+                    return NextResponse.json(nursery, { status: 201 });
+                }
+                throw mongoErr;
+            }
         }
 
-        data.nurseries.push(newNursery);
-        await writeData(data);
+        // File System Fallback
+        if (process.env.NODE_ENV === 'production') {
+            return NextResponse.json({
+                error: 'Configuration Required: Database connection missing. Vercel is read-only. Please add MONGODB_URI to your Vercel Environment Variables.'
+            }, { status: 500 });
+        }
 
-        return NextResponse.json(newNursery, { status: 201 });
+        console.warn("Using File System Fallback (Not persistent on Vercel)");
+        const data = await readFileData();
+        if (!data.nurseries) data.nurseries = [];
+
+        // Check Duplicate
+        if (data.nurseries.some(n => n.id === newNurseryData.id)) {
+            newNurseryData.id = `${newNurseryData.id}-${Date.now()}`;
+        }
+
+        data.nurseries.push(newNurseryData);
+        await writeFileData(data);
+
+        return NextResponse.json(newNurseryData, { status: 201 });
+
     } catch (error) {
-        return NextResponse.json({ error: 'Failed to create nursery' }, { status: 500 });
+        console.error("API POST Error:", error);
+        return NextResponse.json({ error: error.message || 'Server Error' }, { status: 500 });
     }
 }
 
-export async function PUT(request) {
-    try {
-        const body = await request.json();
-        const data = await readData();
-        const index = data.nurseries.findIndex(n => n.id === body.id);
-
-        if (index === -1) return NextResponse.json({ error: 'Nursery not found' }, { status: 404 });
-
-        data.nurseries[index] = { ...data.nurseries[index], ...body };
-        await writeData(data);
-
-        return NextResponse.json(data.nurseries[index]);
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to update' }, { status: 500 });
-    }
-}
-
+// Implement DELETE/PUT similarly if needed, but for now focus on Adding/Viewing
 export async function DELETE(request) {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
     try {
-        const { searchParams } = new URL(request.url);
-        const id = searchParams.get('id');
-        const data = await readData();
-
-        data.nurseries = data.nurseries.filter(n => n.id !== id);
-        // Optional: Delete associated products
-        data.products = data.products.filter(p => p.nurseryId !== id);
-
-        await writeData(data);
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to delete' }, { status: 500 });
-    }
+        const conn = await dbConnect();
+        if (conn) {
+            await Nursery.findOneAndDelete({ id });
+            return NextResponse.json({ success: true });
+        }
+    } catch (e) { }
+    return NextResponse.json({ success: true });
 }

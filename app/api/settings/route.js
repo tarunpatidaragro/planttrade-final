@@ -1,25 +1,32 @@
 import { NextResponse } from 'next/server';
+import dbConnect from '@/lib/mongoose';
+import Settings from '@/models/Settings';
 import { promises as fs } from 'fs';
 import path from 'path';
 
 const dataFilePath = path.join(process.cwd(), 'lib/data.json');
 
-async function readData() {
+async function readFileData() {
     try {
         const fileContents = await fs.readFile(dataFilePath, 'utf8');
         return JSON.parse(fileContents);
-    } catch (e) {
-        return {};
-    }
+    } catch (e) { return {}; }
 }
 
-async function writeData(data) {
+async function writeFileData(data) {
     await fs.writeFile(dataFilePath, JSON.stringify(data, null, 2));
 }
 
 export async function GET() {
-    const data = await readData();
-    // Return existing hero settings or default
+    try {
+        const conn = await dbConnect();
+        if (conn) {
+            const setting = await Settings.findOne({ key: 'hero' });
+            if (setting) return NextResponse.json(setting.value);
+        }
+    } catch (e) { }
+
+    const data = await readFileData();
     const hero = data.hero || {
         title: "Bring Nature Home",
         subtitle: "Discover thousands of rare and common plants from trusted independent nurseries.",
@@ -31,16 +38,30 @@ export async function GET() {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const data = await readData();
 
-        data.hero = {
-            ...data.hero,
-            ...body
-        };
+        const conn = await dbConnect();
+        if (conn) {
+            // Upsert (Update if exists, Insert if not)
+            const updated = await Settings.findOneAndUpdate(
+                { key: 'hero' },
+                { key: 'hero', value: body },
+                { new: true, upsert: true }
+            );
+            return NextResponse.json(updated.value);
+        }
 
-        await writeData(data);
+        if (process.env.NODE_ENV === 'production') {
+            return NextResponse.json({
+                error: 'Configuration Required: Database connection missing. Vercel is read-only. Please add MONGODB_URI to your Vercel Environment Variables.'
+            }, { status: 500 });
+        }
+
+        const data = await readFileData();
+        data.hero = { ...data.hero, ...body };
+        await writeFileData(data);
         return NextResponse.json(data.hero);
     } catch (error) {
-        return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 });
+        console.error(error);
+        return NextResponse.json({ error: `Failed to update settings: ${error.message}` }, { status: 500 });
     }
 }
