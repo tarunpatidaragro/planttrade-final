@@ -173,19 +173,68 @@ import Link from 'next/link';
 import { Star, CheckCircle, MapPin } from 'lucide-react';
 import ProductCard from '../../components/ProductCard';
 
+import dbConnect from '@/lib/mongoose';
+import Product from '@/models/Product';
+import Nursery from '@/models/Nursery';
+import { promises as fs } from 'fs';
+import path from 'path';
+
 async function getData(productId) {
-    const filePath = path.join(process.cwd(), 'lib/data.json');
-    const jsonData = await fs.readFile(filePath, 'utf8');
-    const data = JSON.parse(jsonData);
+    try {
+        await dbConnect();
 
-    const product = data.products.find(p => p.id == productId);
-    if (!product) return { product: null, related: [] };
+        let product;
+        if (productId.match(/^[0-9a-fA-F]{24}$/)) {
+            product = await Product.findById(productId).lean();
+        }
+        if (!product) {
+            product = await Product.findOne({ id: productId }).lean();
+        }
 
-    const nursery = data.nurseries.find(n => n.id === product.nurseryId); // Get nursery info
+        if (!product) return { product: null, nursery: null, related: [] };
 
-    const related = data.products.filter(p =>
-        p.id != productId && (p.nurseryId === product.nurseryId || p.category === product.category)
-    ).slice(0, 4);
+        product._id = product._id.toString();
 
-    return { product, nursery, related };
+        // Fetch Nursery
+        let nursery = null;
+        if (product.nursery) {
+            nursery = await Nursery.findById(product.nursery).lean();
+        } else if (product.nurseryId) {
+            nursery = await Nursery.findOne({ id: product.nurseryId }).lean();
+            if (!nursery && product.nurseryId.match(/^[0-9a-fA-F]{24}$/)) {
+                nursery = await Nursery.findById(product.nurseryId).lean();
+            }
+        }
+        if (nursery) nursery._id = nursery._id.toString();
+
+        // Fetch Related
+        const related = await Product.find({
+            _id: { $ne: product._id },
+            category: product.category
+        }).limit(4).lean();
+
+        return {
+            product,
+            nursery,
+            related: related.map(p => ({ ...p, _id: p._id.toString() }))
+        };
+
+    } catch (e) {
+        console.warn("MongoDB Fetch Error (Product Detail):", e);
+        if (process.env.NODE_ENV !== 'production') {
+            const filePath = path.join(process.cwd(), 'lib/data.json');
+            try {
+                const jsonData = await fs.readFile(filePath, 'utf8');
+                const data = JSON.parse(jsonData);
+                const product = data.products.find(p => p.id == productId);
+                if (!product) return { product: null, nursery: null, related: [] };
+                const nursery = data.nurseries.find(n => n.id === product.nurseryId);
+                const related = data.products.filter(p =>
+                    p.id != productId && (p.nurseryId === product.nurseryId || p.category === product.category)
+                ).slice(0, 4);
+                return { product, nursery, related };
+            } catch (err) { return { product: null, related: [] }; }
+        }
+        return { product: null, related: [] };
+    }
 }

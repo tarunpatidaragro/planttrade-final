@@ -7,7 +7,11 @@ import Link from 'next/link';
 export default function ProductFormPage() {
     const router = useRouter();
     const [nurseries, setNurseries] = useState([]);
-    const [categories, setCategories] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Categories hardcoded or fetched? Let's use static for now as api/categories might not exist
+    const categories = ['Indoor', 'Outdoor', 'Flowering', 'Fruit', 'Medicinal', 'Succulents', 'Seeds', 'Pots', 'Fertilizers'];
+
     const [formData, setFormData] = useState({
         name: '',
         nurseryId: '',
@@ -16,15 +20,12 @@ export default function ProductFormPage() {
         description: '',
         benefits: '', // "key nenifits"
         image: '',
-        gallery: [],
-        rating: 4.5 // Default
+        rating: 4.5
     });
 
     useEffect(() => {
-        // Fetch nurseries for "assign to nursury"
+        // Fetch nurseries for dropdown
         fetch('/api/nurseries').then(res => res.json()).then(data => setNurseries(data));
-        // Fetch Categories
-        fetch('/api/categories').then(res => res.json()).then(data => setCategories(data));
     }, []);
 
     const handleChange = (e) => {
@@ -32,18 +33,30 @@ export default function ProductFormPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setFormData(prev => ({ ...prev, image: URL.createObjectURL(file) }));
-        }
-    };
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Product Added', formData);
-        alert('Product Added! (Simulated)');
-        router.push('/admin/products');
+        setIsLoading(true);
+
+        try {
+            const res = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            if (res.ok) {
+                alert('Product Added Successfully!');
+                router.push('/admin/products');
+            } else {
+                const err = await res.json();
+                alert(`Error: ${err.error || 'Failed to add product'}`);
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Something went wrong');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -75,7 +88,7 @@ export default function ProductFormPage() {
                         <select name="category" value={formData.category} onChange={handleChange} className="input" required>
                             <option value="">Select Category</option>
                             {categories.map((cat, i) => (
-                                <option key={i} value={cat.name}>{cat.name}</option>
+                                <option key={i} value={cat}>{cat}</option>
                             ))}
                         </select>
                     </div>
@@ -89,7 +102,7 @@ export default function ProductFormPage() {
                         <select name="nurseryId" value={formData.nurseryId} onChange={handleChange} className="input" required>
                             <option value="">-- Choose Nursery --</option>
                             {nurseries.map(n => (
-                                <option key={n.id} value={n.id}>{n.name} ({n.location})</option>
+                                <option key={n._id || n.id} value={n._id || n.id}>{n.name} ({n.location})</option>
                             ))}
                         </select>
                         <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.5rem' }}>
@@ -106,7 +119,7 @@ export default function ProductFormPage() {
                         <textarea name="description" value={formData.description} onChange={handleChange} className="input" style={{ minHeight: '120px' }} placeholder="Detailed description of the plant..." required />
                     </div>
                     <div>
-                        <label className="label">Key Benefits</label>
+                        <label className="label">Key Benefits (comma separated)</label>
                         <textarea name="benefits" value={formData.benefits} onChange={handleChange} className="input" style={{ minHeight: '80px' }} placeholder="e.g. Air purifying, Low light tolerant..." />
                     </div>
                 </div>
@@ -115,20 +128,18 @@ export default function ProductFormPage() {
                 <div>
                     <h3 style={{ fontSize: '1.25rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1rem' }}>Images</h3>
                     <div style={{ marginBottom: '1.5rem' }}>
-                        <label className="label">Main Image</label>
-                        <input type="file" accept="image/*" onChange={handleImageUpload} className="input" required />
+                        <label className="label">Image URL</label>
+                        <input type="url" name="image" value={formData.image} onChange={handleChange} className="input" placeholder="https://..." required />
+                        <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>Paste a direct link to an image (e.g., from Unsplash or Imgur).</p>
                         {formData.image && <img src={formData.image} alt="Preview" style={{ width: '100px', height: '100px', objectFit: 'cover', marginTop: '0.5rem', borderRadius: '0.5rem', border: '1px solid #eee' }} />}
-                    </div>
-
-                    <div>
-                        <label className="label">Gallery Images</label>
-                        <input type="file" multiple accept="image/*" className="input" />
                     </div>
                 </div>
 
                 <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                    <button type="button" onClick={() => router.back()} className="btn btn-outline">Cancel</button>
-                    <button type="submit" className="btn btn-primary">Save Product</button>
+                    <button type="button" onClick={() => router.back()} className="btn btn-outline" disabled={isLoading}>Cancel</button>
+                    <button type="submit" className="btn btn-primary" disabled={isLoading}>
+                        {isLoading ? 'Saving...' : 'Save Product'}
+                    </button>
                 </div>
 
             </form>

@@ -1,12 +1,26 @@
+import dbConnect from '@/lib/mongoose';
+import Product from '@/models/Product';
 import { promises as fs } from 'fs';
 import path from 'path';
 import Link from 'next/link';
 import ProductCard from '../components/ProductCard';
 
 async function getProducts() {
-    const filePath = path.join(process.cwd(), 'lib/data.json');
-    const jsonData = await fs.readFile(filePath, 'utf8');
-    return JSON.parse(jsonData).products;
+    try {
+        await dbConnect();
+        const products = await Product.find({}).sort({ createdAt: -1 }).lean();
+        return products.map(p => ({ ...p, _id: p._id.toString() }));
+    } catch (e) {
+        console.warn("MongoDB Fetch Error (Products Page):", e);
+        if (process.env.NODE_ENV !== 'production') {
+            const filePath = path.join(process.cwd(), 'lib/data.json');
+            try {
+                const jsonData = await fs.readFile(filePath, 'utf8');
+                return JSON.parse(jsonData).products || [];
+            } catch (err) { return []; }
+        }
+        return [];
+    }
 }
 
 export default async function PlantsPage() {
