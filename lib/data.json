@@ -352,5 +352,52 @@
       "rescuePrice": 200,
       "rescueReason": "Slight leaf discoloration, healthy roots."
     }
+  ],
+  "categories": [
+    {
+      "name": "Indoor",
+      "image": "https://images.unsplash.com/photo-1599687351724-dfa3c4ff81b1?auto=format&fit=crop&w=150&q=80",
+      "description": "Perfect for living rooms and low light."
+    },
+    {
+      "name": "Outdoor",
+      "image": "https://images.unsplash.com/photo-1614594975525-e45852b82481?auto=format&fit=crop&w=150&q=80",
+      "description": "For gardens, balconies and full sun."
+    },
+    {
+      "name": "Flowering",
+      "image": "https://images.unsplash.com/photo-1598512752271-33f913a5af13?auto=format&fit=crop&w=150&q=80",
+      "description": "Seasonal and perennial blooms."
+    },
+    {
+      "name": "Fruit",
+      "image": "https://images.unsplash.com/photo-1622383563227-0430138f2976?auto=format&fit=crop&w=150&q=80",
+      "description": "Grow your own organic fruit."
+    },
+    {
+      "name": "Medicinal",
+      "image": "https://images.unsplash.com/photo-1526304640152-d4619684e484?auto=format&fit=crop&w=150&q=80",
+      "description": "Herbs and healing plants."
+    },
+    {
+      "name": "Succulents",
+      "image": "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=150&q=80",
+      "description": "Low maintenance beauties."
+    },
+    {
+      "name": "Seeds",
+      "image": "https://images.unsplash.com/photo-1445510440086-60aca5c156dc?auto=format&fit=crop&w=150&q=80",
+      "description": "Start your garden from scratch."
+    },
+    {
+      "name": "Pots",
+      "image": "https://images.unsplash.com/photo-1459156212016-c812468e2115?auto=format&fit=crop&w=150&q=80",
+      "description": "Planters and containers."
+    },
+    {
+      "name": "Sacred",
+      "image": "https://images.unsplash.com/photo-1634320958189-eeb52119e685?auto=format&fit=crop&w=150&q=80",
+      "description": "Tulsi, Bel Patra and more."
+    }
   ]
 }

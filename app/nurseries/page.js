@@ -1,21 +1,46 @@
+import dbConnect from '@/lib/mongoose';
+import Nursery from '@/models/Nursery';
 import { promises as fs } from 'fs';
 import path from 'path';
-import Link from 'next/link';
 
 async function getNurseries(search) {
-    const filePath = path.join(process.cwd(), 'lib/data.json');
-    const jsonData = await fs.readFile(filePath, 'utf8');
-    let data = JSON.parse(jsonData).nurseries;
-
-    if (search) {
-        const q = search.toLowerCase();
-        data = data.filter(n =>
-            n.name.toLowerCase().includes(q) ||
-            n.location.toLowerCase().includes(q) ||
-            n.specialties.some(s => s.toLowerCase().includes(q)) // Search in specialties too
-        );
+    try {
+        await dbConnect();
+        let query = {};
+        if (search) {
+            const regex = new RegExp(search, 'i');
+            query = {
+                $or: [
+                    { name: regex },
+                    { location: regex },
+                    { specialties: regex }
+                ]
+            };
+        }
+        const nurseries = await Nursery.find(query).sort({ createdAt: -1 }).lean();
+        // Convert _id to string or remove it to avoid serialization issues
+        return nurseries.map(n => ({ ...n, _id: n._id.toString() }));
+    } catch (e) {
+        console.warn("MongoDB Fetch Error (Nurseries Page):", e);
+        // ONLY valid for local fallback
+        if (process.env.NODE_ENV !== 'production') {
+            const filePath = path.join(process.cwd(), 'lib/data.json');
+            try {
+                const jsonData = await fs.readFile(filePath, 'utf8');
+                let data = JSON.parse(jsonData).nurseries || [];
+                if (search) {
+                    const q = search.toLowerCase();
+                    data = data.filter(n =>
+                        n.name.toLowerCase().includes(q) ||
+                        n.location.toLowerCase().includes(q) ||
+                        n.specialties.some(s => s.toLowerCase().includes(q))
+                    );
+                }
+                return data;
+            } catch (err) { return []; }
+        }
+        return [];
     }
-    return data;
 }
 
 export default async function NurseriesList({ searchParams }) {
